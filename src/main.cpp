@@ -2,7 +2,7 @@
 #include <Zigbee.h>
 
 // Define the GPIO pin connected to the MOSFET Gate.
-const int MOSFET_GATE_PIN = D0;
+const int MOSFET_GATE_PIN = D10;
 
 // The built-in LED is usually defined as LED_BUILTIN.
 // On the ESP32-C6, this typically corresponds to GPIO8.
@@ -115,17 +115,17 @@ void checkForReset()
 void loop()
 {
   // Turn the USB port and the LED ON.
-  digitalWrite(MOSFET_GATE_PIN, HIGH);
+  digitalWrite(MOSFET_GATE_PIN, LOW);
   digitalWrite(ONBOARD_LED_PIN, HIGH);
-  Serial.println("USB Port & LED ON");
+  Serial.println("USB Port & LED OFF");
 
   // Wait for the specified interval.
   delay(BLINK_INTERVAL);
 
   // Turn the USB port and the LED OFF.
-  digitalWrite(MOSFET_GATE_PIN, LOW);
+  digitalWrite(MOSFET_GATE_PIN, HIGH);
   digitalWrite(ONBOARD_LED_PIN, LOW);
-  Serial.println("USB Port & LED OFF");
+  Serial.println("USB Port & LED ON");
 
   // Wait before repeating the loop.
   delay(BLINK_INTERVAL);
