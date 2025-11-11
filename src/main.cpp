@@ -5,13 +5,23 @@
 const int MOSFET_GATE_PIN = D10;
 
 // The built-in LED is usually defined as LED_BUILTIN.
-// On the ESP32-C6, this typically corresponds to GPIO8.
 const int ONBOARD_LED_PIN = LED_BUILTIN;
-
-// The interval for each state (on/off) in milliseconds.
-const int BLINK_INTERVAL = 10000; // 3 seconds
+const int SLEEP = 10;
+int ledBuiltinLeft = 0;
 
 ZigbeeHueLight *powerOutlet;
+
+bool on = false;
+
+// Static callback implementations
+static void staticLightChangeCallback(bool state, uint8_t endpoint, uint8_t red, uint8_t green, uint8_t blue, uint8_t level, uint16_t temperature, esp_zb_zcl_color_control_color_mode_t color_mode)
+{
+  on = state;
+  if (on)  
+    Serial.println("USB Port ON");
+  else
+    Serial.println("USB Port OFF");
+}
 
 void setup()
 {
@@ -39,6 +49,8 @@ void setup()
   powerOutlet->setSwBuild("0.0.1");
   powerOutlet->setOnOffOnTime(0);
   powerOutlet->setOnOffGlobalSceneControl(false);
+  powerOutlet->onLightChange(staticLightChangeCallback);
+
 
   Zigbee.addEndpoint(powerOutlet);
 
@@ -58,6 +70,7 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
     delay(100);
   }
+  powerOutlet->setLightState(false);
 }
 
 void resetSystem()
@@ -111,24 +124,36 @@ void checkForReset()
   }
 }
 
-// void loop runs over and over again
+void ledDigital(int *left, int period, int pin, int sleep)
+{
+  *left -= sleep;
+  if (*left < period)
+  {
+    digitalWrite(pin, LOW);
+  }
+  else
+  {
+    digitalWrite(pin, HIGH);
+  }
+  if (*left < 0)
+  {
+    *left = period * 2;
+  }
+}  
+
 void loop()
 {
-  // Turn the USB port and the LED ON.
-  digitalWrite(MOSFET_GATE_PIN, LOW);
-  digitalWrite(ONBOARD_LED_PIN, HIGH);
-  Serial.println("USB Port & LED OFF");
-
-  // Wait for the specified interval.
-  delay(BLINK_INTERVAL);
-
-  // Turn the USB port and the LED ON.
-  digitalWrite(MOSFET_GATE_PIN, HIGH);
-  digitalWrite(ONBOARD_LED_PIN, LOW);
-  Serial.println("USB Port & LED ON");
-
-  // Wait before repeating the loop.
-  delay(BLINK_INTERVAL);
+  if (!on)   
+  {
+    digitalWrite(MOSFET_GATE_PIN, LOW);    
+    ledDigital(&ledBuiltinLeft, 1000, LED_BUILTIN, SLEEP);
+  }
+  else 
+  {
+    digitalWrite(MOSFET_GATE_PIN, HIGH);
+    ledDigital(&ledBuiltinLeft, 500, LED_BUILTIN, SLEEP);
+  }
+  vTaskDelay(pdMS_TO_TICKS(SLEEP));
 
   checkForReset();
 }
