@@ -122,7 +122,7 @@ void loop()
   // Wait for the specified interval.
   delay(BLINK_INTERVAL);
 
-  // Turn the USB port and the LED OFF.
+  // Turn the USB port and the LED ON.
   digitalWrite(MOSFET_GATE_PIN, HIGH);
   digitalWrite(ONBOARD_LED_PIN, LOW);
   Serial.println("USB Port & LED ON");
